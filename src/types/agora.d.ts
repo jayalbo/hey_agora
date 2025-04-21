@@ -14,9 +14,27 @@ declare module "agora-rtc-sdk-ng" {
     leave(): Promise<void>;
     on(event: string, callback: Function): void;
     off(event: string, callback: Function): void;
+    publish(tracks: any[]): Promise<void>;
+  }
+
+  export interface AudioTrackConfig {
+    encoderConfig?:
+      | "music_standard"
+      | "music_high"
+      | "music_ultra"
+      | "speech_standard"
+      | "speech_low"
+      | "speech_high";
+  }
+
+  export interface IMicrophoneAudioTrack {
+    close(): void;
   }
 
   export function createClient(config: ClientConfig): Client;
+  export function createMicrophoneAudioTrack(
+    config?: AudioTrackConfig
+  ): Promise<IMicrophoneAudioTrack>;
 }
 
 declare module "agora-token" {

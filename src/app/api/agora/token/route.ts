@@ -1,12 +1,21 @@
 import { NextResponse } from "next/server";
 import { RtcTokenBuilder, RtcRole } from "agora-token";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const channelName = searchParams.get("channel");
+
+    if (!channelName) {
+      return NextResponse.json(
+        { error: "Channel name is required" },
+        { status: 400 }
+      );
+    }
+
     const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID!;
     const appCertificate = process.env.AGORA_APP_CERTIFICATE!;
-    const channelName = "hey-agora-channel";
-    const uid = "agent"; // String UID for the agent
+    const uid = 67890; // Integer UID for the user
 
     const expirationTimeInSeconds = 3600; // 1 hour
     const currentTimestamp = Math.floor(Date.now() / 1000);
