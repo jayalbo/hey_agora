@@ -48,7 +48,7 @@ export async function POST(request: Request) {
         agent_rtc_uid: process.env.AGORA_AGENT_UID!,
         agent_rtm_uid: process.env.AGORA_AGENT_UID!,
         enable_string_uid: false,
-        // token: agentToken,
+        token: agentToken,
         remote_rtc_uids: ["*"],
         idle_timeout: 30,
         advanced_features: {
