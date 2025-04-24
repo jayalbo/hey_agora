@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { getTokens, leaveChannel } from "@/utils/tokens";
-import { initializeClient } from "@/utils/agora";
+import {
+  setupVoiceConnection,
+  disconnect,
+  getConnectionInfo,
+  setOnDisconnect,
+  setOnWakeWordReset,
+} from "@/utils/agora";
 import { sendMessageToAgent, joinAgent } from "@/services/conversationalAI";
-
-interface TokenResponse {
-  rtmToken: string;
-  rtcToken: string;
-}
 
 export default function VoiceAssistant() {
   const [isListening, setIsListening] = useState(false);
@@ -18,51 +18,46 @@ export default function VoiceAssistant() {
   const [isClient, setIsClient] = useState(false);
   const [initialCommand, setInitialCommand] = useState<string | null>(null);
   const commandRef = useRef<string | null>(null);
-
-  const clientRef = useRef<any>(null);
-  const localAudioTrackRef = useRef<any>(null);
-  const channelNameRef = useRef<string | null>(null);
   const wakeWordDetectionRef = useRef<any>(null);
   const isAgentJoinedRef = useRef<boolean>(false);
-  const audioTrackInitializedRef = useRef<boolean>(false);
   const isConnectingRef = useRef<boolean>(false);
-  const remoteAudioTracksRef = useRef<any[]>([]);
+  const [connectionStatus, setConnectionStatus] = useState<string>("");
 
   // Add effect to sync commandRef with initialCommand state
   useEffect(() => {
     commandRef.current = initialCommand;
   }, [initialCommand]);
 
+  useEffect(() => {
+    // Set up the disconnect callback
+    setOnDisconnect(() => {
+      setIsListening(false);
+      setIsConnecting(false);
+      setError(null);
+      setConnectionStatus("");
+      setMessage("Listening for 'Hey Agora'...");
+    });
+
+    // Set up the wake word reset callback
+    setOnWakeWordReset(() => {
+      startWakeWordDetection();
+    });
+
+    return () => {
+      // Clean up the callbacks
+      setOnDisconnect(() => {});
+      setOnWakeWordReset(() => {});
+    };
+  }, []);
+
   const handleDisconnect = async () => {
     try {
-      if (localAudioTrackRef.current) {
-        // Don't close the audio track, just stop it
-        localAudioTrackRef.current.stop();
-      }
-
-      // Stop and clean up remote audio tracks
-      remoteAudioTracksRef.current.forEach((track) => {
-        if (track) {
-          track.stop();
-        }
-      });
-      remoteAudioTracksRef.current = [];
-
-      if (clientRef.current && channelNameRef.current) {
-        await clientRef.current.leave();
-        clientRef.current = null;
-      }
-
-      if (wakeWordDetectionRef.current) {
-        wakeWordDetectionRef.current.stop();
-        wakeWordDetectionRef.current = null;
-      }
-
-      channelNameRef.current = null;
+      await disconnect();
       isAgentJoinedRef.current = false;
       setIsListening(false);
-      setMessage("");
+      setMessage("Listening for 'Hey Agora'...");
       isConnectingRef.current = false;
+      startWakeWordDetection(); // Restart wake word detection
     } catch (err) {
       console.error("Error during disconnect:", err);
       setError(err instanceof Error ? err.message : "Failed to disconnect");
@@ -70,7 +65,7 @@ export default function VoiceAssistant() {
     }
   };
 
-  const setupVoiceConnection = async () => {
+  const connectToVoice = async () => {
     // Prevent multiple simultaneous calls
     if (isConnectingRef.current) {
       console.log("Already connecting, ignoring additional call");
@@ -80,113 +75,36 @@ export default function VoiceAssistant() {
     isConnectingRef.current = true;
 
     try {
-      // If we're already connected or connecting, disconnect first
-      if (clientRef.current) {
-        await handleDisconnect();
-      }
-
       setIsConnecting(true);
       setError(null);
+      setMessage("Connecting to AI agent...");
 
-      // Generate a unique channel name and get token
-      const channelName = `agent-${Date.now()}`;
-      const tokenResponse = await getTokens(channelName);
-      if (!tokenResponse.rtcToken) {
-        throw new Error("Failed to get RTC token");
-      }
-      channelNameRef.current = channelName;
+      // Reset agent joined state to ensure fresh connection
+      isAgentJoinedRef.current = false;
 
-      // Initialize Agora client
-      const client = await initializeClient();
-      clientRef.current = client;
+      // Get connection info first
+      const { channelName, token } = getConnectionInfo();
 
-      // Set up event handlers for remote users
-      client.on("user-published", async (user: any, mediaType: string) => {
-        console.log("User published:", user.uid, mediaType);
-
-        // Subscribe to the user
-        await client.subscribe(user, mediaType);
-
-        if (mediaType === "audio") {
-          // Store the remote audio track
-          const remoteAudioTrack = user.audioTrack;
-          remoteAudioTracksRef.current.push(remoteAudioTrack);
-
-          // Play the remote audio
-          remoteAudioTrack.play();
-
-          console.log("Subscribed to remote audio from:", user.uid);
-        }
-      });
-
-      client.on("user-unpublished", (user: any, mediaType: string) => {
-        console.log("User unpublished:", user.uid, mediaType);
-
-        if (mediaType === "audio") {
-          // Find and stop the remote audio track
-          const index = remoteAudioTracksRef.current.findIndex(
-            (track) => track === user.audioTrack
-          );
-
-          if (index !== -1) {
-            remoteAudioTracksRef.current[index].stop();
-            remoteAudioTracksRef.current.splice(index, 1);
-          }
-        }
-      });
-
-      // Join the channel
-      await client.join(
-        process.env.NEXT_PUBLIC_AGORA_APP_ID!,
-        channelName,
-        tokenResponse.rtcToken,
-        null
-      );
-
-      // Use the existing audio track or create it if it doesn't exist
-      if (!localAudioTrackRef.current) {
-        // Dynamically import AgoraRTC only on client side
-        const AgoraRTC = (await import("agora-rtc-sdk-ng")).default;
-
-        // Create and publish local audio track
-        const audioTrack = await AgoraRTC.createMicrophoneAudioTrack({
-          encoderConfig: "music_standard",
-        });
-        localAudioTrackRef.current = audioTrack;
-        audioTrackInitializedRef.current = true;
-      } else {
-        // Resume the existing audio track
-        localAudioTrackRef.current.play();
-      }
-
-      await client.publish([localAudioTrackRef.current]);
-
-      // Join the agent to the call if not already joined
-      if (!isAgentJoinedRef.current) {
-        try {
-          await joinAgent(channelName);
-          console.log("Initial command:", commandRef.current);
-
-          // Send the initial command to the agent if available
-          if (commandRef.current) {
-            console.log(
-              "Sending initial command to agent:",
-              commandRef.current
-            );
-            await sendMessageToAgent(commandRef.current);
-            setInitialCommand(null); // Clear the initial command after sending
-          }
-
-          isAgentJoinedRef.current = true;
-          setMessage("Connected! AI agent is ready to help...");
-        } catch (err) {
+      // Run both connections concurrently
+      await Promise.all([
+        setupVoiceConnection({ channelName, token }),
+        joinAgent(channelName).catch((err) => {
           console.error("Error joining agent:", err);
-          setMessage(
-            "Connected! But AI agent failed to join. Please try again."
-          );
-        }
+          // Don't throw here, let the agent join error be handled separately
+        }),
+      ]);
+
+      console.log("Initial command:", commandRef.current);
+
+      // Send the initial command to the agent if available
+      if (commandRef.current) {
+        console.log("Sending initial command to agent:", commandRef.current);
+        await sendMessageToAgent(commandRef.current);
+        setInitialCommand(null); // Clear the initial command after sending
       }
 
+      isAgentJoinedRef.current = true;
+      setMessage("Connected! AI agent is ready to help...");
       setIsListening(true);
     } catch (err) {
       console.error("Error setting up voice connection:", err);
@@ -213,7 +131,7 @@ export default function VoiceAssistant() {
         wakeWord: "hey agora",
         onWakeWordDetected: async () => {
           setMessage("Wake word detected! Connecting to AI agent...");
-          await setupVoiceConnection();
+          await connectToVoice();
         },
         onCommand: (command: string) => {
           console.log("Command received:", command);
@@ -243,16 +161,12 @@ export default function VoiceAssistant() {
       startWakeWordDetection();
     }
     return () => {
-      if (channelNameRef.current) {
-        leaveChannel(channelNameRef.current);
-      }
       if (wakeWordDetectionRef.current) {
         wakeWordDetectionRef.current.stop();
       }
-      // Clean up audio track when component unmounts
-      if (localAudioTrackRef.current) {
-        localAudioTrackRef.current.close();
-        localAudioTrackRef.current = null;
+      // Only disconnect if we're actually unmounting and not just initializing
+      if (isListening || isAgentJoinedRef.current) {
+        handleDisconnect();
       }
     };
   }, [isClient]);

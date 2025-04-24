@@ -1,4 +1,4 @@
-import { AGENT_UID, APP_ID, getChannelName } from "@/utils/agora";
+import { AGENT_UID, getConnectionInfo } from "@/utils/agora";
 
 export const joinAgent = async (channelName: string) => {
   try {
@@ -34,7 +34,7 @@ export const joinAgent = async (channelName: string) => {
 
 export const leaveAgent = async () => {
   try {
-    const channelName = getChannelName();
+    const { channelName } = getConnectionInfo();
 
     const response = await fetch("/api/agent/leave", {
       method: "POST",

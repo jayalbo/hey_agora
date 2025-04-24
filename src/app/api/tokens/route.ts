@@ -16,16 +16,17 @@ export async function POST(request: Request) {
     }
 
     // Generate RTC token
-    const expirationTimeInSeconds = 3600; // 1 hour
+    const expirationTimeInSeconds = 3600 * 24; // 1 hour
     const currentTimestamp = Math.floor(Date.now() / 1000);
     const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
 
-    const rtcToken = RtcTokenBuilder.buildTokenWithUid(
+    const rtcToken = RtcTokenBuilder.buildTokenWithRtm(
       appId,
       appCertificate,
       channelName,
       0, // Use 0 for dynamic assignment
       RtcRole.PUBLISHER,
+      privilegeExpiredTs,
       privilegeExpiredTs
     );
 

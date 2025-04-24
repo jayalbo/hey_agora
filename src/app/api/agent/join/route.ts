@@ -29,16 +29,17 @@ export async function POST(request: Request) {
     }
 
     // Generate token for the agent
-    const expirationTimeInSeconds = 3600; // 1 hour
+    const expirationTimeInSeconds = 3600 * 24;
     const currentTimestamp = Math.floor(Date.now() / 1000);
     const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
 
-    const agentToken = RtcTokenBuilder.buildTokenWithUid(
+    const agentToken = RtcTokenBuilder.buildTokenWithRtm(
       appId,
       appCertificate,
       channelName,
       process.env.AGORA_AGENT_UID!, // Use the same UID as specified in agent_rtc_uid
       RtcRole.PUBLISHER,
+      privilegeExpiredTs,
       privilegeExpiredTs
     );
     const requestBody = {
@@ -79,6 +80,7 @@ You should:
 - Keep answers concise unless the user asks for more detail.
 
 Behave like a real assistant. If you don’t know something, suggest a next step or how to help.
+Keep your responses short and concise.
 
 Your name is "Agora", and you are always ready to help.
 
@@ -94,15 +96,11 @@ Your name is "Agora", and you are always ready to help.
           },
         },
         tts: {
-          // vendor: process.env.AGORA_TTS_VENDOR!,
-          vendor: "elevenlabs",
+          vendor: process.env.AGORA_TTS_VENDOR!,
           params: {
-            key: "e67f1b2746856cb18ecaf04233613ddf",
-            model_id: "eleven_flash_v2_5",
-            voice_id: "XrExE9yKIg1WjnnlVkGX",
-            // key: process.env.AGORA_TTS_API_KEY!,
-            // region: process.env.AGORA_TTS_REGION!,
-            // voice_name: process.env.AGORA_TTS_VOICE_NAME!,
+            key: process.env.AGORA_TTS_API_KEY!,
+            region: process.env.AGORA_TTS_REGION!,
+            voice_name: process.env.AGORA_TTS_VOICE_NAME!,
           },
         },
       },

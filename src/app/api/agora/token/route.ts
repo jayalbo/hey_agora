@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     const appCertificate = process.env.AGORA_APP_CERTIFICATE!;
     const uid = 67890; // Integer UID for the user
 
-    const expirationTimeInSeconds = 3600; // 1 hour
+    const expirationTimeInSeconds = 3600 * 24;
     const currentTimestamp = Math.floor(Date.now() / 1000);
     const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
 
@@ -28,6 +28,7 @@ export async function GET(request: Request) {
       channelName,
       uid,
       RtcRole.PUBLISHER,
+      privilegeExpiredTs,
       privilegeExpiredTs
     );
 
