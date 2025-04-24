@@ -10,6 +10,33 @@ import {
 } from "@/utils/agora";
 import { sendMessageToAgent, joinAgent } from "@/services/conversationalAI";
 
+const StatusIndicator = ({
+  status,
+}: {
+  status: "idle" | "listening" | "connecting" | "error";
+}) => {
+  return (
+    <div className="relative w-24 h-24 flex items-center justify-center">
+      {/* Outer ring */}
+      <div className="absolute inset-0 rounded-full border-2 border-gray-600"></div>
+
+      {/* Circle with subtle gradient */}
+      <div
+        className={`absolute inset-0 rounded-full
+        ${
+          status === "idle"
+            ? "bg-[radial-gradient(circle_at_center,rgba(75,75,75,0.2)_0%,rgba(45,45,45,0.4)_100%)]"
+            : status === "listening"
+            ? "bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.2)_0%,rgba(37,99,235,0.4)_100%)] animate-pulse"
+            : status === "connecting"
+            ? "bg-[radial-gradient(circle_at_center,rgba(245,158,11,0.2)_0%,rgba(217,119,6,0.4)_100%)] animate-pulse"
+            : "bg-[radial-gradient(circle_at_center,rgba(239,68,68,0.2)_0%,rgba(220,38,38,0.4)_100%)]"
+        }`}
+      ></div>
+    </div>
+  );
+};
+
 export default function VoiceAssistant() {
   const [isListening, setIsListening] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -22,6 +49,9 @@ export default function VoiceAssistant() {
   const isAgentJoinedRef = useRef<boolean>(false);
   const isConnectingRef = useRef<boolean>(false);
   const [connectionStatus, setConnectionStatus] = useState<string>("");
+  const [status, setStatus] = useState<
+    "idle" | "listening" | "connecting" | "error"
+  >("idle");
 
   // Add effect to sync commandRef with initialCommand state
   useEffect(() => {
@@ -138,6 +168,11 @@ export default function VoiceAssistant() {
           // Store the command to send to the agent once connected
           setInitialCommand(command);
         },
+        onError: (error: string) => {
+          console.error("Wake word detection error:", error);
+          setError(`Wake word detection error: ${error}`);
+          // Don't automatically restart on errors
+        },
       });
 
       wakeWordDetectionRef.current.start();
@@ -149,6 +184,7 @@ export default function VoiceAssistant() {
           ? err.message
           : "Failed to start wake word detection"
       );
+      // Don't automatically restart on errors
     }
   };
 
@@ -176,39 +212,40 @@ export default function VoiceAssistant() {
     startWakeWordDetection(); // Restart wake word detection after disconnecting
   };
 
+  // Update status based on state changes
+  useEffect(() => {
+    if (error) {
+      setStatus("error");
+    } else if (isConnecting) {
+      setStatus("connecting");
+    } else if (isListening) {
+      setStatus("listening");
+    } else {
+      setStatus("idle");
+    }
+  }, [isListening, isConnecting, error]);
+
   if (!isClient) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen py-2">
-        <h1 className="text-4xl font-bold mb-4">Voice Assistant</h1>
-        <p className="mb-8 text-center max-w-md">Loading...</p>
-      </div>
+      <main className="grid place-items-center min-h-screen">
+        <div className="flex flex-col items-center gap-2">
+          <h1 className="text-2xl font-bold text-white">Voice Assistant</h1>
+          <p className="text-gray-400">Loading...</p>
+        </div>
+      </main>
     );
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen py-2">
-      <h1 className="text-4xl font-bold mb-4">Voice Assistant</h1>
-      <p className="mb-8 text-center max-w-md">
-        {message || "Say 'Hey Agora' to start a conversation"}
-      </p>
-      {error && <p className="text-red-500 mb-4">{error}</p>}
-      <button
-        onClick={isListening ? stopListening : startWakeWordDetection}
-        disabled={isConnecting}
-        className={`px-6 py-3 rounded-lg text-white font-semibold ${
-          isConnecting
-            ? "bg-gray-400"
-            : isListening
-            ? "bg-red-500 hover:bg-red-600"
-            : "bg-blue-500 hover:bg-blue-600"
-        }`}
-      >
-        {isConnecting
-          ? "Connecting..."
-          : isListening
-          ? "Stop Listening"
-          : "Start Listening"}
-      </button>
-    </div>
+    <main className="grid place-items-center min-h-screen">
+      <div className="flex flex-col items-center gap-4">
+        <h1 className="text-2xl font-bold text-white">Voice Assistant</h1>
+        <StatusIndicator status={status} />
+        <p className="text-gray-400 text-sm">
+          {message || "Say 'Hey Agora' to start a conversation"}
+        </p>
+        {error && <p className="text-red-400 text-sm">{error}</p>}
+      </div>
+    </main>
   );
 }
