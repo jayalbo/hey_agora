@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Hey Agora Voice Assistant
+
+![Next.js](https://img.shields.io/badge/Next.js-14-black)
+![Agora](https://img.shields.io/badge/Agora-RTC-blue)
+
+A voice-controlled AI assistant that uses wake word detection, real-time voice communication, and conversational AI to provide a hands-free assistant experience.
+
+## Features
+
+- ✨ **Wake Word Detection**: Activate with "Hey Agora" without touching any controls
+- 🎤 **Real-time Voice Communication**: Uses Agora RTC for high-quality audio streaming
+- 🤖 **Conversational AI Integration**: Connects to AI agents for natural interactions
+- 🔊 **Audio Level Monitoring**: Detects when users or AI agents are speaking
+- 🔄 **Automatic Session Management**: Handles connection/disconnection based on activity
+- 📱 **Responsive Design**: Works across devices with a clean, minimalist interface
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Node.js 18+ and npm/yarn
+- Agora account with App ID and token generation capability
+- Web browser with microphone access
+
+### Environment Setup
+
+Create a `.env.local` file in the root directory with the following variables:
+
+```
+NEXT_PUBLIC_AGORA_APP_ID=your_agora_app_id
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/hey_agora.git
+cd hey_agora
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Install dependencies
+npm install
 
-## Learn More
+# Start the development server
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Then open [http://localhost:3000](http://localhost:3000) in your browser.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Usage
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Grant microphone access when prompted
+2. Wait for the "Listening for 'Hey Agora'..." message
+3. Say "Hey Agora" to activate the assistant
+4. Speak your question or command
+5. The AI agent will respond through audio
+6. Conversation ends automatically after silence
 
-## Deploy on Vercel
+## How It Works
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The application uses a multi-layer architecture:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. **Front-end UI**: Next.js React components for the user interface
+2. **Wake Word Detection**: Uses the wake-word-command library to detect the activation phrase
+3. **Voice Connection**: Agora RTC SDK for real-time audio communication
+4. **Conversational AI**: Backend service that processes speech and generates responses
+
+## Technologies
+
+- [Next.js](https://nextjs.org/) - React framework
+- [Agora RTC SDK](https://www.agora.io/en/) - Real-time communication
+- [Tailwind CSS](https://tailwindcss.com/) - Styling
+- [Web Speech API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API) - Browser speech recognition
+- [Wake Word Command](https://www.npmjs.com/package/wake-word-command) - Wake word detection
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgements
+
+- Special thanks to the Agora team for their excellent SDK
+- All contributors who have helped shape this project
