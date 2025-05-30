@@ -111,10 +111,10 @@ _After detecting “Hey Agora,” the UI pulses to indicate active listening and
 ![Wake Word Detection Console](/blog_static/console-command.png)  
 _Browser console logs show successful detection of the wake word and the full command passed to the AI._
 
-### 🎧 Agora Token Setup
+### 🎧 Agora Customer ID & Secret Setup
 
 ![Agora Console](/blog_static/agora-console-setup.png)  
-_Agora Console showing how to generate App ID and Token._
+_Agora Console showing how to retrieve your customer Id and generate the secret._
 
 ### 🧠 AI Response in Action
 
