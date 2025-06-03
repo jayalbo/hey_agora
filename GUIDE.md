@@ -88,11 +88,100 @@ setMessage("Listening for 'Hey Agora'...");
 
 ## 🧠 Conversational AI: `services/conversationalAI.ts`
 
-This module handles the backend interaction:
+This module handles the backend interaction with Agora’s Conversational AI engine and integrates the AI agent lifecycle into the voice assistant.
 
-- Joins and leaves the agent session
-- Sends the captured voice command to the AI model via RESTful POST request (https://docs.agora.io/en/conversational-ai/develop/custom-information)
-- Handles the received audio response from the AI
+### ✅ Agent Join Request
+
+When the user says “Hey Agora” and their command is captured, the frontend joins the RTC channel and then sends a POST request to the serverless route `/api/agent/start`. This handler constructs and sends an HTTPS request directly to Agora’s Conversational AI API:
+
+```ts
+await fetch("https://api.agora.io/conversational-ai/agent/join", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Basic ${Buffer.from(
+      `${customerId}:${customerSecret}`
+    ).toString("base64")}`,
+  },
+  body: JSON.stringify({
+    name: "demo_agent",
+    properties: {
+      channel: channelName,
+      token: rtcToken,
+      agent_rtc_uid: agentUid,
+      remote_rtc_uids: ["*"],
+      enable_string_uid: true,
+      asr: { language: "en-US" },
+    },
+  }),
+});
+```
+
+### ❌ Agent Leave Request
+
+When the user goes silent or disconnects, the frontend requests the agent to leave via `/api/agent/stop`. That route sends a POST request to Agora like this:
+
+```ts
+await fetch("https://api.agora.io/conversational-ai/agent/leave", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Basic ${Buffer.from(
+      `${customerId}:${customerSecret}`
+    ).toString("base64")}`,
+  },
+  body: JSON.stringify({
+    agent_id: "demo_agent",
+  }),
+});
+```
+
+---
+
+### ✉️ Sending the Initial Message
+
+After the wake word and command are detected, the frontend sends a request to:
+
+```ts
+await fetch("/api/agent/message", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ message: command, agentUid: AGORA_AGENT_UID }),
+});
+```
+
+This triggers the serverless route `/api/agent/message`, which sends a peer message to the agent through Agora’s RTM infrastructure using the following request:
+
+```ts
+const url = `https://api.agora.io/dev/v2/project/${appId}/rtm/users/Server/peer_messages`;
+const requestBody = {
+  destination: process.env.AGORA_AGENT_UID!,
+  payload: message,
+  custom_type: "user.transcription",
+};
+
+await fetch(url, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Basic ${Buffer.from(
+      `${customerId}:${customerSecret}`
+    ).toString("base64")}`,
+  },
+  body: JSON.stringify(requestBody),
+});
+```
+
+The message is routed from the `"Server"` RTM user to the Conversational AI agent, which interprets it as a user transcription due to the `custom_type: "user.transcription"` field.
+
+Agora then takes care of the rest:
+
+1. Processing the transcription with ASR
+2. Forwarding it to your configured LLM provider.
+3. Synthesizing a voice response using your selected TTS service.
+4. Playing the response back to the user in the RTC channel.
+
+This makes your server a lightweight bridge—offloading all the AI orchestration to Agora’s infrastructure.
 
 ---
 
