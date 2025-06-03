@@ -140,7 +140,7 @@ await fetch("https://api.agora.io/conversational-ai/agent/leave", {
 
 ### ✉️ Sending the Initial Message
 
-After the wake word and command are detected, the frontend sends a request to:
+After the wake word and command are detected and the intial command captured via `wake-word-command` library, the frontend sends a the initial command via POST request to:
 
 ```ts
 await fetch("/api/agent/message", {
