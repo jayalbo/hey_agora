@@ -1,4 +1,4 @@
-# Unlock On-Demand AI: A Deep Dive into Hey Agora
+# Unlock On-Demand AI: Build Your Own Voice Assistant with Agora
 
 Imagine interacting with an AI assistant that responds to your voice in real-time, effortlessly translating your words into intelligent conversation and speaking back to you—all within your web browser. This isn't just a concept; it's what **Hey Agora** brings to life. More than just a simple example, this demo project showcases the seamless integration of **Agora's real-time communication** capabilities with the power of modern **Large Language Models (LLMs)** to create a compelling, on-demand AI assistant experience.
 
