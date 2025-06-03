@@ -276,13 +276,15 @@ Visit http://localhost:3000 in your browser.
 What you’ve seen in Hey Agora is just the beginning. The architecture is designed to be extensible—and by plugging in your own custom LLM wrapper, you can go far beyond answering questions.
 
 For instance, with just a bit of server-side logic, your assistant can act on structured outputs from the LLM to trigger real-world actions. Imagine:
-• 🔌 Controlling smart home devices via IFTTT or Home Assistant
-• 📅 Creating calendar events or reminders from natural language prompts
-• 🔔 Sending alerts or messages to Slack, email, or SMS
-• 🛠️ Triggering build/deploy pipelines or dev automations
-• 🧠 Conversing in context with long-term memory via vector databases
 
-By wrapping your LLM output in a simple function-calling schema or JSON command format, Hey Agora becomes a true multimodal interface—not just for information, but for interaction.
+- 🔌 Controlling smart home devices via IFTTT or Home Assistant
+- 📅 Creating calendar events or reminders from natural language prompts
+- 🔔 Sending alerts or messages to Slack, email, or SMS
+- 🛠️ Triggering build/deploy pipelines or dev automations
+- 🧠 Conversing in context with long-term memory via vector databases
+
+> [!TIP]
+> By wrapping your LLM output in a simple function-calling schema or JSON command format, Hey Agora becomes a true multimodal interface—not just for information, but for interaction.
 
 Whether you’re building a voice-powered dashboard, a home assistant, or a custom voicebot for enterprise workflows, this foundation gives you everything you need to bring voice-first AI to life.
 
