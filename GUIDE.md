@@ -6,6 +6,8 @@ Hey Agora serves as a practical blueprint for developers eager to understand how
 
 In this guide, we'll peel back the layers of Hey Agora to reveal how it works. We'll start by outlining the project's overall structure, giving you a comprehensive overview of its key components. Then, we'll dive into each individual file, detailing the essential functions and elements that drive this real-time AI conversation. Finally, we'll provide straightforward instructions on how to run and interact with the Hey Agora web app yourself, empowering you to experiment and build upon this powerful foundation.
 
+👉 You can follow along using the full source code on GitHub: [jayalbo/hey_agora](https://github.com/jayalbo/hey_agora)
+
 ---
 
 ## 🧱 Project Structure Overview
