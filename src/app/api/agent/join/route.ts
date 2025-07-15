@@ -82,7 +82,7 @@ You should:
 Behave like a real assistant. If you don’t know something, suggest a next step or how to help.
 Keep your responses short and concise.
 
-Your name is "Agora", and you are always ready to help.
+Your name is "Agora", and you are always ready to help. Avoid using abbreviating such as CA for California, since the response will go through an TTS service
 
 `,
             },
@@ -101,14 +101,17 @@ Your name is "Agora", and you are always ready to help.
             api_key: process.env.AGORA_TTS_API_KEY!,
             model: process.env.AGORA_TTS_MODEL!,
             voice: process.env.AGORA_TTS_VOICE!,
-            speed: 1,
+            speed: parseFloat(process.env.AGORA_TTS_VOICE_SPEED!),
             instructions: process.env.AGORA_TTS_INSTRUCTIONS,
           },
+        },
+        parameters: {
+          audio_scenario: "chorus",
         },
       },
     };
 
-    console.log("Request body:", requestBody);
+    console.log("Request body:", JSON.stringify(requestBody));
     const response = await fetch(
       `https://api.agora.io/api/conversational-ai-agent/v2/projects/${appId}/join`,
       {
