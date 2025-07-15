@@ -39,7 +39,7 @@ const setupAudioAnalysis = (audioTrack: any) => {
 
   const mediaStreamTrack = audioTrack.getMediaStreamTrack();
   const source = audioContext.createMediaStreamSource(
-    new MediaStream([mediaStreamTrack])
+    new MediaStream([mediaStreamTrack]),
   );
   source.connect(analyserNode!);
 
@@ -112,7 +112,7 @@ const startSilenceDetection = () => {
       console.log(
         `No speech detected from either party for ${
           SILENCE_TIMEOUT / 1000
-        } seconds, disconnecting...`
+        } seconds, disconnecting...`,
       );
       disconnect(true); // Pass true to indicate this is a timeout disconnect
     }
@@ -216,7 +216,7 @@ const initializeEngine = async () => {
   client.on("user-unpublished", (user: any, mediaType: string) => {
     if (mediaType === "audio") {
       const index = remoteAudioTracks.findIndex(
-        (track) => track === user.audioTrack
+        (track) => track === user.audioTrack,
       );
       if (index !== -1) {
         remoteAudioTracks[index].stop();
@@ -237,7 +237,7 @@ const initializeEngine = async () => {
 export const getConnectionInfo = () => {
   if (!channelName || !token) {
     throw new Error(
-      "AgoraRTC not initialized. Please wait for the page to load."
+      "AgoraRTC not initialized. Please wait for the page to load.",
     );
   }
   return { channelName, token };
@@ -276,7 +276,7 @@ export const setupVoiceConnection = async (connectionInfo?: {
       process.env.NEXT_PUBLIC_AGORA_APP_ID!,
       currentChannelName,
       currentToken,
-      null
+      null,
     );
 
     // Create and publish local audio track
@@ -384,7 +384,7 @@ export const disconnect = async (isTimeout: boolean = false) => {
           client.on("user-unpublished", (user: any, mediaType: string) => {
             if (mediaType === "audio") {
               const index = remoteAudioTracks.findIndex(
-                (track) => track === user.audioTrack
+                (track) => track === user.audioTrack,
               );
               if (index !== -1) {
                 remoteAudioTracks[index].stop();

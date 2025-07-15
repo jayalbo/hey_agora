@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     if (!appId || !appCertificate) {
       return NextResponse.json(
         { error: "Missing Agora credentials" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
       process.env.AGORA_AGENT_UID!, // Use the same UID as specified in agent_rtc_uid
       RtcRole.PUBLISHER,
       privilegeExpiredTs,
-      privilegeExpiredTs
+      privilegeExpiredTs,
     );
     const requestBody = {
       name: `agent-${Date.now()}`,
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
           system_messages: [
             {
               role: "system",
-              content: `You are a highly capable and conversational AI assistant embedded in a web app. 
+              content: `You are a highly capable and conversational AI assistant embedded in a web app.
 Your role is to act like an intelligent personal assistant—similar to Alexa or Siri—but more advanced, natural, and context-aware thanks to your LLM capabilities.
 
 You should:
@@ -98,9 +98,11 @@ Your name is "Agora", and you are always ready to help.
         tts: {
           vendor: process.env.AGORA_TTS_VENDOR!,
           params: {
-            key: process.env.AGORA_TTS_API_KEY!,
-            region: process.env.AGORA_TTS_REGION!,
-            voice_name: process.env.AGORA_TTS_VOICE_NAME!,
+            api_key: process.env.AGORA_TTS_API_KEY!,
+            model: process.env.AGORA_TTS_MODEL!,
+            voice: process.env.AGORA_TTS_VOICE!,
+            speed: 1,
+            instructions: process.env.AGORA_TTS_INSTRUCTIONS,
           },
         },
       },
@@ -116,7 +118,7 @@ Your name is "Agora", and you are always ready to help.
           Authorization: `Basic ${credentials}`,
         },
         body: JSON.stringify(requestBody),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -124,8 +126,8 @@ Your name is "Agora", and you are always ready to help.
       console.error("Error joining agent:", errorData);
       throw new Error(
         `HTTP error! status: ${response.status}, message: ${JSON.stringify(
-          errorData
-        )}`
+          errorData,
+        )}`,
       );
     }
 
@@ -136,7 +138,7 @@ Your name is "Agora", and you are always ready to help.
     console.error("Error joining agent:", error);
     return NextResponse.json(
       { error: "Failed to join agent" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
